@@ -1,4 +1,4 @@
-all : aeq libasound_module_pcm_aeq.so
+all : aeq libasound_module_pcm_aeq.so lib32/libasound_module_pcm_aeq.so
 
 aeq : gui.c common.c common.h
 	gcc -std=gnu99 -Wall -Wextra -O2 -g \
@@ -12,6 +12,13 @@ libasound_module_pcm_aeq.so : aeq.c common.c common.h
 	 -Wl,-soname -Wl,libasound_module_pcm_aeq.so \
 	 -o libasound_module_pcm_aeq.so aeq.c common.c
 
+lib32/libasound_module_pcm_aeq.so : aeq.c common.c common.h
+	mkdir -p lib32
+	gcc -m32 -std=gnu99 -Wall -Wextra -O2 -g -DPIC -fpic -shared \
+	 `pkg-config --cflags --libs alsa` \
+	 -Wl,-soname -Wl,libasound_module_pcm_aeq.so \
+	 -o lib32/libasound_module_pcm_aeq.so aeq.c common.c
+
 install :
 	mkdir -p $(DESTDIR)/usr/bin
 	cp aeq $(DESTDIR)/usr/bin/
@@ -20,6 +27,10 @@ install :
 	rm -f $(DESTDIR)/usr/lib/alsa-lib/libasound_module_pcm_aeq.so  # delete then replace
 	cp libasound_module_pcm_aeq.so $(DESTDIR)/usr/lib/alsa-lib/
 	chmod 0755 $(DESTDIR)/usr/lib/alsa-lib/libasound_module_pcm_aeq.so
+	mkdir -p $(DESTDIR)/usr/lib32/alsa-lib
+	rm -f $(DESTDIR)/usr/lib32/alsa-lib/libasound_module_pcm_aeq.so  # delete then replace
+	cp lib32/libasound_module_pcm_aeq.so $(DESTDIR)/usr/lib32/alsa-lib/
+	chmod 0755 $(DESTDIR)/usr/lib32/alsa-lib/libasound_module_pcm_aeq.so
 	mkdir -p $(DESTDIR)/usr/share/applications
 	cp aeq.desktop $(DESTDIR)/usr/share/applications/
 	chmod 0644 $(DESTDIR)/usr/share/applications/aeq.desktop
@@ -31,8 +42,9 @@ install :
 uninstall :
 	rm -f $(DESTDIR)/usr/bin/aeq
 	rm -f $(DESTDIR)/usr/lib/alsa-lib/libasound_module_pcm_aeq.so
+	rm -f $(DESTDIR)/usr/lib32/alsa-lib/libasound_module_pcm_aeq.so
 	rm -f $(DESTDIR)/usr/share/applications/aeq.desktop
 	rm -rf $(DESTDIR)/etc/aeq
 
 clean :
-	rm -f aeq libasound_module_pcm_aeq.so
+	rm -f aeq libasound_module_pcm_aeq.so lib32/libasound_module_pcm_aeq.so
